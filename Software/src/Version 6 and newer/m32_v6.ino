@@ -477,15 +477,26 @@ uint8_t scrollTop;
 
 int checkEncoder()
 {
+#ifdef CONFIG_BUTTON_ENCODER
+    // Nano build: two buttons substitute for the rotary encoder.
+    // Each call reports at most one step to avoid flooding the caller.
+    static bool leftWasDown  = false;
+    static bool rightWasDown = false;
+    bool leftDown  = !digitalRead(encLeftPin);
+    bool rightDown = !digitalRead(encRightPin);
+    if (leftDown && !leftWasDown)  { leftWasDown  = true;  return -1; }
+    if (!leftDown)                   leftWasDown  = false;
+    if (rightDown && !rightWasDown){ rightWasDown = true;  return  1; }
+    if (!rightDown)                  rightWasDown = false;
+    return 0;
+#else
     static long int oldPosition = 0;
     long newPosition = rotaryEncoder.getCount() / 2 ;
     long diff;
 
-
     if (newPosition == oldPosition)
         return 0;
     else {
-        //  Serial.println ("newPos: " + String(newPosition));
         diff = newPosition - oldPosition;
         oldPosition = newPosition;
         delay (10); // debounce delay, seems to be necessary for the encoder to work properly
@@ -494,6 +505,7 @@ int checkEncoder()
         else
             return -1;
     }
+#endif
 }
 
 //////////////////////// Function for generating DEBUG and ERROR messages on USB, ONLY IF USB is not used for outputting characters
@@ -596,8 +608,13 @@ pinMode(PIN_VEXT, OUTPUT);
   volt = batteryVoltage();
 
   // set up the encoder - we need external pull-ups as the pins used do not have built-in pull-ups!
+#ifndef CONFIG_BUTTON_ENCODER
   pinMode(PinCLK,INPUT_PULLUP);
   pinMode(PinDT,INPUT_PULLUP);
+#else
+  pinMode(encLeftPin,  INPUT_PULLUP);
+  pinMode(encRightPin, INPUT_PULLUP);
+#endif
   pinMode(keyerPin, OUTPUT);        // we can use the built-in LED to show when the transmitter is being keyed
 #ifdef INTERNAL_PULLUP
   pinMode(leftPin, INPUT_PULLUP);          // external keyer left paddle
@@ -718,8 +735,10 @@ delay(VEXT_SETTLE_MS);   // let the panel supply rail settle before the ST7789 r
   //attachInterrupt(CONFIG_MCP_STAT2_PIN, powerpath_isr, CHANGE);
 #endif
 
+#ifndef CONFIG_BUTTON_ENCODER
   rotaryEncoder.attachHalfQuad ( PinDT, PinCLK );
   rotaryEncoder.setCount ( 0 );
+#endif
 
 
 /// set up for encoder button

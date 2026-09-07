@@ -145,6 +145,16 @@ const int volButtonPin = PIN_VOL_BTN;
 const int volButtonPin = 0;
 #endif
 
+/// Nano button-encoder: two buttons that substitute for the rotary encoder.
+/// PIN_ENC_LEFT  → checkEncoder() returns -1 while pressed
+/// PIN_ENC_RIGHT → checkEncoder() returns +1 while pressed
+/// When neither is defined the hardware encoder (PinCLK/PinDT) is used as usual.
+#if defined(PIN_ENC_LEFT) && defined(PIN_ENC_RIGHT)
+  #define CONFIG_BUTTON_ENCODER 1
+  const int encLeftPin  = PIN_ENC_LEFT;
+  const int encRightPin = PIN_ENC_RIGHT;
+#endif
+
 
 //// with the following we define which pins are used as output for the two pwm channels
 //// HF output (with varying duticycle and fixed frequency) and LF output (with varying frequency and fixed dutycycle of 50%)
