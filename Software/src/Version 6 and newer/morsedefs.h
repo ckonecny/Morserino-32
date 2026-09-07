@@ -182,11 +182,15 @@ const int HF_Pin = 22;
 /// where are the touch paddles?
 #ifdef PIN_TOUCH_LEFT
 const int LEFT = PIN_TOUCH_LEFT;
+#elif defined(TOUCHPADDLES_DISABLED)
+const int LEFT = 0;         // touch paddles disabled, pin unused
 #else
 const int LEFT = T2;        // = Pin 2
 #endif
 #ifdef PIN_TOUCH_RIGHT
 const int RIGHT = PIN_TOUCH_RIGHT;
+#elif defined(TOUCHPADDLES_DISABLED)
+const int RIGHT = 0;        // touch paddles disabled, pin unused
 #else
 const int RIGHT = T5;       // = Pin 12
 #endif
