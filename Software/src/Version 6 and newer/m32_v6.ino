@@ -482,8 +482,8 @@ int checkEncoder()
     // Each call reports at most one step to avoid flooding the caller.
     static bool leftWasDown  = false;
     static bool rightWasDown = false;
-    bool leftDown  = !digitalRead(encLeftPin);
-    bool rightDown = !digitalRead(encRightPin);
+    bool leftDown  = !digitalRead(encLeftPin);   // D0: active-LOW (hardware pullup)
+    bool rightDown =  digitalRead(encRightPin);  // D2: active-HIGH (hardware pulldown)
     if (leftDown && !leftWasDown)  { leftWasDown  = true;  return -1; }
     if (!leftDown)                   leftWasDown  = false;
     if (rightDown && !rightWasDown){ rightWasDown = true;  return  1; }
@@ -612,8 +612,8 @@ pinMode(PIN_VEXT, OUTPUT);
   pinMode(PinCLK,INPUT_PULLUP);
   pinMode(PinDT,INPUT_PULLUP);
 #else
-  pinMode(encLeftPin,  INPUT_PULLUP);
-  pinMode(encRightPin, INPUT_PULLUP);
+  pinMode(encLeftPin,  INPUT_PULLUP);  // D0: has hardware pullup, active-LOW
+  pinMode(encRightPin, INPUT);         // D2: has hardware pulldown, active-HIGH
 #endif
   pinMode(keyerPin, OUTPUT);        // we can use the built-in LED to show when the transmitter is being keyed
 #ifdef INTERNAL_PULLUP
@@ -631,6 +631,14 @@ pinMode(PIN_VEXT, OUTPUT);
 pinMode(modeButtonPin, INPUT_PULLUP);
 #else
 pinMode(modeButtonPin, INPUT);
+#endif
+#ifdef CONFIG_BUTTON_ENCODER
+  // Adafruit Reverse TFT Feather: D1 (modeButtonPin/GPIO1) has a hardware
+  // pulldown; the button drives HIGH when pressed (active-HIGH).
+  // ORIGINAL_M32 board-version detection does not run here, so set
+  // activeHigh explicitly for this build.
+  pinMode(modeButtonPin, INPUT);
+  Buttons::modeButton.activeHigh = HIGH;
 #endif
 
 
